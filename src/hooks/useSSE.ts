@@ -12,8 +12,8 @@ export function useSSE<T>(nodeId: string, type: string, onMessage: (t: Telemetry
   onMessageRef.current = onMessage
 
   useEffect(() => {
-    const loomURL = process.env.NEXT_PUBLIC_LOOM_URL ?? 'http://localhost:8080'
-    const es = new EventSource(`${loomURL}/api/stream?node_id=${nodeId}&type=${type}`)
+    const osaURL = process.env.NEXT_PUBLIC_OSA_URL ?? 'http://localhost:8081'
+    const es = new EventSource(`${osaURL}/api/stream?node_id=${nodeId}&type=${type}`)
     esRef.current = es
 
     es.onopen = () => setStatus('connected')

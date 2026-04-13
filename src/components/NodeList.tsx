@@ -11,11 +11,11 @@ interface Props {
 export default function NodeList({ selectedId, onSelect }: Props) {
   const [nodes, setNodes] = useState<NodeInfo[]>([])
 
-  const loomURL = process.env.NEXT_PUBLIC_LOOM_URL ?? 'http://localhost:8080'
+  const osaURL = process.env.NEXT_PUBLIC_OSA_URL ?? 'http://localhost:8081'
 
   useEffect(() => {
     const fetchNodes = () => {
-      fetch(`${loomURL}/api/nodes`)
+      fetch(`${osaURL}/api/nodes`)
         .then((r) => r.json())
         .then(setNodes)
         .catch(() => {})
@@ -24,7 +24,7 @@ export default function NodeList({ selectedId, onSelect }: Props) {
     fetchNodes()
     const id = setInterval(fetchNodes, 5000)
     return () => clearInterval(id)
-  }, [loomURL])
+  }, [osaURL])
 
   return (
     <div className="flex h-full flex-col">

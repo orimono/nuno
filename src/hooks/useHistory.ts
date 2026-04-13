@@ -7,8 +7,8 @@ export function useHistory<T>(nodeId: string, type: string, limit: number): Tele
   const [records, setRecords] = useState<Telemetry<T>[]>([])
 
   useEffect(() => {
-    const loomURL = process.env.NEXT_PUBLIC_LOOM_URL ?? 'http://localhost:8080'
-    fetch(`${loomURL}/api/history?node_id=${nodeId}&type=${type}&limit=${limit}`)
+    const osaURL = process.env.NEXT_PUBLIC_OSA_URL ?? 'http://localhost:8081'
+    fetch(`${osaURL}/api/history?node_id=${nodeId}&type=${type}&limit=${limit}`)
       .then((r) => r.json())
       .then((data) => setRecords(data ?? []))
       .catch(() => setRecords([]))
