@@ -9,10 +9,11 @@ import { ChartCard } from '@/components/ChartCard'
 
 interface Props {
   nodeId: string
-  windowPoints: number
+  windowSeconds: number
 }
 
 interface DataPoint {
+  tsMs: number
   time: string
   recv_kbps: number
   sent_kbps: number
@@ -34,8 +35,10 @@ function toPoints(records: { ts: number; payload: NetworkMetrics }[]): DataPoint
     const totalSentNow = curr.payload.interfaces.reduce((s, x) => s + x.bytes_sent, 0)
     const totalRecvPrev = prev.payload.interfaces.reduce((s, x) => s + x.bytes_recv, 0)
     const totalSentPrev = prev.payload.interfaces.reduce((s, x) => s + x.bytes_sent, 0)
+    const tsMs = curr.ts / 1_000_000
     points.push({
-      time: new Date(curr.ts / 1_000_000).toLocaleTimeString(),
+      tsMs,
+      time: new Date(tsMs).toLocaleTimeString(),
       recv_kbps: parseFloat(Math.max(0, (totalRecvNow - totalRecvPrev) / dtSec / 1024).toFixed(2)),
       sent_kbps: parseFloat(Math.max(0, (totalSentNow - totalSentPrev) / dtSec / 1024).toFixed(2)),
     })
@@ -43,8 +46,8 @@ function toPoints(records: { ts: number; payload: NetworkMetrics }[]): DataPoint
   return points
 }
 
-export default function NetworkChart({ nodeId, windowPoints }: Props) {
-  const history = useHistory<NetworkMetrics>(nodeId, 'net', windowPoints)
+export default function NetworkChart({ nodeId, windowSeconds }: Props) {
+  const history = useHistory<NetworkMetrics>(nodeId, 'net', windowSeconds)
   const [data, setData] = useState<DataPoint[]>([])
   const prevRef = useRef<{ ts: number; recv: number; sent: number } | null>(null)
 
@@ -70,7 +73,9 @@ export default function NetworkChart({ nodeId, windowPoints }: Props) {
       if (dtSec > 0) {
         const recvKbps = parseFloat(Math.max(0, (totalRecv - prevRef.current.recv) / dtSec / 1024).toFixed(2))
         const sentKbps = parseFloat(Math.max(0, (totalSent - prevRef.current.sent) / dtSec / 1024).toFixed(2))
-        setData((prev) => [...prev.slice(-(windowPoints - 1)), { time: new Date(nowMs).toLocaleTimeString(), recv_kbps: recvKbps, sent_kbps: sentKbps }])
+        const point: DataPoint = { tsMs: nowMs, time: new Date(nowMs).toLocaleTimeString(), recv_kbps: recvKbps, sent_kbps: sentKbps }
+        const cutoff = Date.now() - windowSeconds * 1000
+        setData((prev) => [...prev, point].filter((p) => p.tsMs >= cutoff))
       }
     }
     prevRef.current = { ts: nowMs, recv: totalRecv, sent: totalSent }

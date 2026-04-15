@@ -8,7 +8,7 @@ import { ChartCard } from '@/components/ChartCard'
 
 interface Props {
   nodeId: string
-  windowPoints: number
+  windowSeconds: number
 }
 
 function formatBytes(bytes: number): string {
@@ -37,8 +37,8 @@ function PartitionBar({ p }: { p: DiskPartition }) {
   )
 }
 
-export default function DiskChart({ nodeId, windowPoints }: Props) {
-  const history = useHistory<DiskMetrics>(nodeId, 'disk', windowPoints)
+export default function DiskChart({ nodeId, windowSeconds }: Props) {
+  const history = useHistory<DiskMetrics>(nodeId, 'disk', windowSeconds)
   const [partitions, setPartitions] = useState<DiskPartition[]>([])
 
   useEffect(() => {

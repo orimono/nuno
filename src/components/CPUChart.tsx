@@ -9,23 +9,26 @@ import { ChartCard } from '@/components/ChartCard'
 
 interface Props {
   nodeId: string
-  windowPoints: number
+  windowSeconds: number
 }
 
 interface DataPoint {
+  tsMs: number
   time: string
   used_percent: number
 }
 
 function toPoint(ts: number, payload: CPUMetrics): DataPoint {
+  const tsMs = ts / 1_000_000
   return {
-    time: new Date(ts / 1_000_000).toLocaleTimeString(),
+    tsMs,
+    time: new Date(tsMs).toLocaleTimeString(),
     used_percent: parseFloat(payload.used_percent.toFixed(1)),
   }
 }
 
-export default function CPUChart({ nodeId, windowPoints }: Props) {
-  const history = useHistory<CPUMetrics>(nodeId, 'cpu', windowPoints)
+export default function CPUChart({ nodeId, windowSeconds }: Props) {
+  const history = useHistory<CPUMetrics>(nodeId, 'cpu', windowSeconds)
   const [data, setData] = useState<DataPoint[]>([])
 
   useEffect(() => {
@@ -33,7 +36,9 @@ export default function CPUChart({ nodeId, windowPoints }: Props) {
   }, [history])
 
   const status = useSSE<CPUMetrics>(nodeId, 'cpu', (t) => {
-    setData((prev) => [...prev.slice(-(windowPoints - 1)), toPoint(t.ts, t.payload)])
+    const point = toPoint(t.ts, t.payload)
+    const cutoff = Date.now() - windowSeconds * 1000
+    setData((prev) => [...prev, point].filter((p) => p.tsMs >= cutoff))
   })
 
   return (

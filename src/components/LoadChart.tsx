@@ -9,10 +9,11 @@ import { ChartCard } from '@/components/ChartCard'
 
 interface Props {
   nodeId: string
-  windowPoints: number
+  windowSeconds: number
 }
 
 interface DataPoint {
+  tsMs: number
   time: string
   load1: number
   load5: number
@@ -20,16 +21,18 @@ interface DataPoint {
 }
 
 function toPoint(ts: number, payload: LoadMetrics): DataPoint {
+  const tsMs = ts / 1_000_000
   return {
-    time: new Date(ts / 1_000_000).toLocaleTimeString(),
+    tsMs,
+    time: new Date(tsMs).toLocaleTimeString(),
     load1: parseFloat(payload.load1.toFixed(2)),
     load5: parseFloat(payload.load5.toFixed(2)),
     load15: parseFloat(payload.load15.toFixed(2)),
   }
 }
 
-export default function LoadChart({ nodeId, windowPoints }: Props) {
-  const history = useHistory<LoadMetrics>(nodeId, 'load', windowPoints)
+export default function LoadChart({ nodeId, windowSeconds }: Props) {
+  const history = useHistory<LoadMetrics>(nodeId, 'load', windowSeconds)
   const [data, setData] = useState<DataPoint[]>([])
 
   useEffect(() => {
@@ -37,7 +40,9 @@ export default function LoadChart({ nodeId, windowPoints }: Props) {
   }, [history])
 
   const status = useSSE<LoadMetrics>(nodeId, 'load', (t) => {
-    setData((prev) => [...prev.slice(-(windowPoints - 1)), toPoint(t.ts, t.payload)])
+    const point = toPoint(t.ts, t.payload)
+    const cutoff = Date.now() - windowSeconds * 1000
+    setData((prev) => [...prev, point].filter((p) => p.tsMs >= cutoff))
   })
 
   return (

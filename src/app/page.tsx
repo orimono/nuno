@@ -9,11 +9,11 @@ import NetworkChart from '@/components/NetworkChart'
 import LoadChart from '@/components/LoadChart'
 import WindowSelector from '@/components/WindowSelector'
 
-const DEFAULT_WINDOW = 60
+const DEFAULT_WINDOW = 5 * 60 // 5 minutes in seconds
 
 export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [windowPoints, setWindowPoints] = useState(DEFAULT_WINDOW)
+  const [windowSeconds, setWindowSeconds] = useState(DEFAULT_WINDOW)
 
   return (
     <div className="flex h-screen bg-neutral-50">
@@ -30,15 +30,15 @@ export default function Home() {
         {selectedId ? (
           <>
             <div className="flex items-center justify-end border-b border-neutral-200 bg-white px-8 py-3">
-              <WindowSelector value={windowPoints} onChange={setWindowPoints} />
+              <WindowSelector value={windowSeconds} onChange={setWindowSeconds} />
             </div>
             <div className="grid grid-cols-1 gap-6 p-8 xl:grid-cols-2">
-              <CPUChart nodeId={selectedId} windowPoints={windowPoints} />
-              <MemoryChart nodeId={selectedId} windowPoints={windowPoints} />
-              <NetworkChart nodeId={selectedId} windowPoints={windowPoints} />
-              <LoadChart nodeId={selectedId} windowPoints={windowPoints} />
+              <CPUChart nodeId={selectedId} windowSeconds={windowSeconds} />
+              <MemoryChart nodeId={selectedId} windowSeconds={windowSeconds} />
+              <NetworkChart nodeId={selectedId} windowSeconds={windowSeconds} />
+              <LoadChart nodeId={selectedId} windowSeconds={windowSeconds} />
               <div className="xl:col-span-2">
-                <DiskChart nodeId={selectedId} windowPoints={windowPoints} />
+                <DiskChart nodeId={selectedId} windowSeconds={windowSeconds} />
               </div>
             </div>
           </>
